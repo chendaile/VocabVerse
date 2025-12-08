@@ -8,16 +8,16 @@ interface WordCardProps {
 
 export function WordCard({ word, onToggleFavorite, isFavorite }: WordCardProps) {
   return (
-    <div className="glass-panel p-5 space-y-3">
-      <div className="flex items-start justify-between">
+    <div className="word-card">
+      <div className="word-card__head">
         <div>
-          <p className="text-xs uppercase tracking-wide text-primary font-semibold">核心词</p>
-          <h3 className="text-xl font-semibold text-ink">{word.term}</h3>
-          <p className="text-sm text-slate-500">/{word.pronunciation}/</p>
+          <p className="word-card__eyebrow">核心词</p>
+          <h3 className="word-card__term">{word.term}</h3>
+          {word.pronunciation ? <p className="word-card__pron">/{word.pronunciation}/</p> : null}
         </div>
         {onToggleFavorite ? (
           <button
-            className={`text-lg ${isFavorite ? 'text-amber-500' : 'text-slate-300'} hover:text-amber-500`}
+            className={`word-card__fav ${isFavorite ? 'is-active' : ''}`}
             aria-label="收藏单词"
             onClick={() => onToggleFavorite?.(word.id)}
             type="button"
@@ -26,18 +26,22 @@ export function WordCard({ word, onToggleFavorite, isFavorite }: WordCardProps) 
           </button>
         ) : null}
       </div>
-      <p className="text-slate-700 text-sm leading-relaxed">{word.definition}</p>
-      <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 border border-slate-100">
-        <span className="font-medium text-slate-800">例句：</span>
-        {word.example}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {word.tags?.map((tag) => (
-          <span key={tag} className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary font-medium">
-            #{tag}
-          </span>
-        ))}
-      </div>
+      <p className="word-card__definition">{word.definition}</p>
+      {word.example ? (
+        <div className="word-card__example">
+          <span className="word-card__example-label">例句：</span>
+          {word.example}
+        </div>
+      ) : null}
+      {word.tags?.length ? (
+        <div className="word-card__tags">
+          {word.tags.map((tag) => (
+            <span key={tag} className="word-card__tag">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }
