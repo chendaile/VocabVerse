@@ -1,4 +1,4 @@
-import type { Word } from '../../../share/types'
+import type { Word } from '../types'
 
 export const featuredWords: Word[] = [
   {

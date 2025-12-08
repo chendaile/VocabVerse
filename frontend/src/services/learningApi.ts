@@ -1,4 +1,4 @@
-import type { ImageRecord, LearningRecord, Level, Word } from '../../../share/types'
+import type { ImageRecord, LearningRecord, Level, Word } from '../types'
 import { apiClient } from './apiClient'
 
 export async function fetchLevels(): Promise<Level[]> {

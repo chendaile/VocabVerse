@@ -1,4 +1,4 @@
-import type { LearningPlan } from '../../../share/types'
+import type { LearningPlan } from '../types'
 
 interface PlanCardProps {
   plan: LearningPlan

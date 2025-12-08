@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 import { WordsService } from './words.service'
-import type { LearningRecord } from '../../../../share/types'
+import type { LearningRecord } from '../../types'
 
 @Controller('words')
 export class WordsController {

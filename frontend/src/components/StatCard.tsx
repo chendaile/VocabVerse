@@ -1,4 +1,4 @@
-import type { ReviewStat } from '../../../share/types'
+import type { ReviewStat } from '../types'
 
 interface StatCardProps {
   stat: ReviewStat

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ImageRecord, Level, Word } from '../../../share/types'
+import type { ImageRecord, Level, Word } from '../types'
 import { fetchLevels, fetchWordsByLevel, generateImageForWord, saveLearningRecord } from '../services/learningApi'
 
 interface WordState {

@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",

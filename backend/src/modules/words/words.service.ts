@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { ImageRecord, LearningRecord, Level, Word } from '../../../../share/types'
+import type { ImageRecord, LearningRecord, Level, Word } from '../../types'
 
 @Injectable()
 export class WordsService {
