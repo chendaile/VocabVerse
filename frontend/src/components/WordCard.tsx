@@ -3,10 +3,12 @@ import type { Word } from '../../../share/types'
 interface WordCardProps {
   word: Word
   onToggleFavorite?: (id: string) => void
+  onGenerateImage?: (word: Word) => void
+  generatedImageUrl?: string
   isFavorite?: boolean
 }
 
-export function WordCard({ word, onToggleFavorite, isFavorite }: WordCardProps) {
+export function WordCard({ word, onToggleFavorite, isFavorite, onGenerateImage, generatedImageUrl }: WordCardProps) {
   return (
     <div className="word-card">
       <div className="word-card__head">
@@ -40,6 +42,26 @@ export function WordCard({ word, onToggleFavorite, isFavorite }: WordCardProps) 
               #{tag}
             </span>
           ))}
+        </div>
+      ) : null}
+
+      <div className="word-card__actions">
+        {onGenerateImage ? (
+          <button className="word-card__image-btn" type="button" onClick={() => onGenerateImage(word)}>
+            生成助记图
+          </button>
+        ) : null}
+        {generatedImageUrl ? (
+          <a className="word-card__image-link" href={generatedImageUrl} target="_blank" rel="noreferrer">
+            查看生成图片
+          </a>
+        ) : null}
+      </div>
+
+      {generatedImageUrl ? (
+        <div className="word-card__image-preview">
+          <img src={generatedImageUrl} alt={`${word.term} 助记图`} />
+          <p className="word-card__image-caption">AI 助记图</p>
         </div>
       ) : null}
     </div>

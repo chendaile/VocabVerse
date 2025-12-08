@@ -15,6 +15,14 @@ export interface Word {
   tags?: string[]
 }
 
+export interface Level {
+  id: string
+  name: string
+  description: string
+  category: string
+  wordCount: number
+}
+
 export interface Progress {
   id: string
   userId: string
@@ -22,6 +30,26 @@ export interface Progress {
   proficiency: number
   lastReviewedAt: string
   nextReviewAt: string
+}
+
+export interface LearningRecord {
+  id: string
+  userId: string
+  wordId: string
+  levelId: string
+  action: 'view' | 'remembered' | 'hard'
+  note?: string
+  createdAt: string
+}
+
+export interface ImageRecord {
+  id: string
+  wordId: string
+  term: string
+  levelId?: string
+  prompt: string
+  imageUrl: string
+  createdAt: string
 }
 
 export interface LearningPlan {
