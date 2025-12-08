@@ -29,6 +29,7 @@
 ## 项目结构
 ```bash
 my-project/
+├─ landing/       # React + Vite 的下载/介绍站点
 ├─ frontend/      # React + Vite + Tailwind + Capacitor
 ├─ android/       # Android 原生工程（Capacitor）
 ├─ ios/           # iOS 原生工程（可选）
