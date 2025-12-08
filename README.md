@@ -1,44 +1,38 @@
 # 技术栈（英语单词记忆 App）
 ![img](.idea/Gemini_Generated_Image_kvvpjfkvvpjfkvvp.png)
+
 ## 前端（Web + App UI）
-- **React + Vite + TypeScript**
-- **TailwindCSS**：移动端优先样式
-- **状态管理**：Zustand / Redux（二选一）
-- **HTTP**：自封装 Fetch 或 Axios
+- React + Vite + TypeScript
+- TailwindCSS（移动端优先）
+- 状态管理：Zustand
+- HTTP：Axios 封装
+- 类型定义：`frontend/src/types.ts`
 
 ## 移动端打包
-- **Capacitor**
-  - 打包为 Android / iOS App
-  - 原生能力：Camera / Filesystem / Storage 等插件
-  - 与前端共用一套代码
+- Capacitor：打包 Android / iOS，共用前端代码
+- 原生能力：Camera / Filesystem / Storage 等插件
 
 ## 后端（API 服务）
-- **NestJS（TypeScript 框架）**
-  - 模块化：`auth / user / words / progress / review`
-  - 内置验证、配置、依赖注入等
+- NestJS 11 + TypeScript
+- Prisma + PostgreSQL（模型在 `backend/prisma/schema.prisma`）
+- 示例模块：`words`，已提供 `/words/levels`、`/words/levels/:id/words`、`/words/progress`、`/words/image`
+- 类型定义：`backend/src/types.ts`
 
 ## 鉴权
-- **微信 OAuth 登录**
-  - 后端处理微信授权回调，获取 `openid`
-  - 使用 **JWT** 发放访问 Token
+- 设计为微信 OAuth，后端获取 `openid`，下发 JWT（待实现）
 
-## 数据库层
-- **PostgreSQL**（关系型）
-- **Prisma ORM**
-  - `User / Word / Progress` 等模型
-  - 自动生成 TS 类型 & 数据迁移
+## 开发启动
+- 后端：`cd backend && npm install && npm run start:dev`（如需数据库再配 `.env`、`npx prisma generate`）
+- 前端：`cd frontend && npm install && npm run dev`
+- 代理：前端将 `/api` 代理到 `http://localhost:3000`（见 `frontend/vite.config.ts`）
 
-## 前后端共享
-- `share/` 目录：存放通用 TS 类型
-  - 如：`User`, `Word`, `Progress` 接口
-
-## 项目结构（Monorepo）
-
+## 项目结构
 ```bash
 my-project/
+├─ landing/       # React + Vite 的下载/介绍站点
 ├─ frontend/      # React + Vite + Tailwind + Capacitor
 ├─ android/       # Android 原生工程（Capacitor）
 ├─ ios/           # iOS 原生工程（可选）
 ├─ backend/       # NestJS + Prisma + PostgreSQL
-├─ share/         # 前后端共享 TypeScript 类型
 └─ README.md
+```
