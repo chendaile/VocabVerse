@@ -1,0 +1,18 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#2563eb',
+        accent: '#06b6d4',
+        ink: '#0f172a'
+      },
+      fontFamily: {
+        display: ['"Inter"', 'sans-serif'],
+        body: ['"Inter"', 'system-ui']
+      }
+    }
+  },
+  plugins: [require('@tailwindcss/forms')]
+}
