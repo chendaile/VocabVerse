@@ -3,6 +3,9 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Pool } from 'pg'; // 引入 node-postgres 的 Pool
 import { TaskStatus } from '@prisma/client';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import OSS from 'ali-oss';
 
 // 定义我们用于通知的数据库频道名称
 const NOTIFY_CHANNEL = 'new_task_channel';
@@ -13,12 +16,26 @@ export class TaskWorkerService implements OnModuleInit {
   private readonly logger = new Logger(TaskWorkerService.name);
   // 创建一个专用于监听通知的数据库连接池
   private pgPool: Pool;
+  private ossClient: ReturnType<typeof OSS>;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly httpService: HttpService,
+  ) {
     // 初始化 pg 连接池。使用独立的连接池进行监听是推荐做法，
     // 因为监听连接会长期保持，不适合与 Prisma 的查询共用。
     this.pgPool = new Pool({
       connectionString: process.env.DATABASE_URL, // 使用 .env 文件中的数据库连接字符串
+    });
+
+    // 初始化 OSS 客户端
+    this.ossClient = new OSS({
+      accessKeyId: process.env.ALI_OSS_ACCESS_KEY_ID,
+      accessKeySecret: process.env.ALI_OSS_ACCESS_KEY_SECRET,
+      bucket: process.env.ALI_OSS_BUCKET,
+      region: process.env.ALI_OSS_REGION,
+      authorizationV4: true, // 启用 V4 签名授权
+      // 可以在此处添加其他配置，例如 secure, cname 等
     });
   }
 
@@ -85,21 +102,65 @@ export class TaskWorkerService implements OnModuleInit {
 
       // 如果成功获取并锁定了任务
       if (task) {
-        this.logger.log(`开始处理任务: ${task.id}`);
+        this.logger.log(`开始处理任务: ${task.id}, prompt: ${task.prompt}`);
 
-        // 模拟一个耗时的操作（例如，调用AI生成图片）
-        await new Promise(resolve => setTimeout(resolve, 5000)); // 模拟5秒钟的工作
+        try {
+          const url = 'http://39.106.1.132:30030/v1/images/generations';
+          const data = {
+            model: 'zimage',
+            prompt: task.prompt,
+            size: '256x256',
+            response_format: 'b64_json',
+          };
+          const headers = {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer dummpy-ket',
+          };
 
-        // 任务处理完成后，更新状态为 "COMPLETED" 并存入结果
-        await this.prisma.task.update({
-          where: { id: task.id },
-          data: {
-            status: TaskStatus.COMPLETED,
-            result: { url: `https://example.com/image_placeholder.png` }, // 这是一个模拟的结果
-          },
-        });
+          this.logger.log('正在发送图像生成API请求...');
+          const response = await firstValueFrom(
+            this.httpService.post(url, data, { headers }),
+          );
 
-        this.logger.log(`任务 ${task.id} 处理完成。`);
+          const b64Json = response.data?.data?.[0]?.b64_json;
+          if (!b64Json) {
+            throw new Error('从API响应中未找到b64_json数据');
+          }
+
+          const imageBuffer = Buffer.from(b64Json, 'base64');
+          const outputFilename = `${task.id}.png`;
+          const ossPath = `images/${outputFilename}`; // OSS 上的路径
+
+          this.logger.log(`正在上传图片到 OSS: ${ossPath}`);
+          const ossResult = await this.ossClient.put(ossPath, imageBuffer, {
+            headers: {
+              'x-oss-object-acl': 'private', // 默认私有访问，提高安全性
+              'x-oss-forbid-overwrite': 'true', // 禁止覆盖同名文件，避免意外情况
+            },
+          });
+          this.logger.log(`图片已成功上传到 OSS: ${ossResult.url}`);
+          
+          // 任务处理完成后，更新状态为 "COMPLETED" 并存入结果
+          await this.prisma.task.update({
+            where: { id: task.id },
+            data: {
+              status: TaskStatus.COMPLETED,
+              result: { url: ossResult.url }, // 保存 OSS 上的图片 URL
+            },
+          });
+
+          this.logger.log(`任务 ${task.id} 处理完成。`);
+        } catch (error) {
+          this.logger.error('图像生成、处理或上传失败', error.response?.data || error.message || error);
+          // 当API调用或文件处理失败时，将任务标记为失败
+          await this.prisma.task.update({
+            where: { id: task.id },
+            data: {
+              status: TaskStatus.FAILED,
+              result: { error: error.response?.data || error.message || error },
+            },
+          });
+        }
       } else {
         // 如果没有找到待处理的任务
         this.logger.log('没有待处理的任务。');

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post } from '@nestjs/common';
 import { TaskStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -7,14 +7,21 @@ export class txt2picController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Post('generate-image')
-  async generateImage(@Body() body: { word: string; num_images?: number }) {
+  async generateImage(@Body() body: { prompt: string; num_images?: number }) {
+    const prompt = body?.prompt?.trim();
+    if (!prompt) {
+      throw new BadRequestException('prompt 不能为空');
+    }
+    const numImages = body?.num_images ?? 1;
+
     const task = await this.prisma.task.create({
       data: {
         type: 'generate_image',
+        prompt,
         status: TaskStatus.PENDING,
         payload: {
-          word: body.word,
-          num_images: body.num_images || 1,
+          // payload 仍可用于存储其他额外信息
+          num_images: numImages,
         },
       },
     });

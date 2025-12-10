@@ -5,6 +5,6 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  providers: [txt2picController],
+  controllers: [txt2picController],
 })
 export class txt2picModule {}
