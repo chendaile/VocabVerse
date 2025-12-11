@@ -1,0 +1,14 @@
+# 忽略不需要打包进镜像的内容
+node_modules
+npm-debug.log
+dist
+coverage
+.git
+.gitignore
+.env
+tmp
+*.tsbuildinfo
+*.log
+Dockerfile
+docker-compose.yml
+certs
