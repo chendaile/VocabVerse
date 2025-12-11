@@ -139,13 +139,15 @@ export class TaskWorkerService implements OnModuleInit {
             },
           });
           this.logger.log(`图片已成功上传到 OSS: ${ossResult.url}`);
+          // 生成带有效期的签名 URL，避免公开访问
+          const signedUrl = this.ossClient.signatureUrl(ossPath, { expires: 3600 });
           
           // 任务处理完成后，更新状态为 "COMPLETED" 并存入结果
           await this.prisma.task.update({
             where: { id: task.id },
             data: {
               status: TaskStatus.COMPLETED,
-              result: { url: ossResult.url }, // 保存 OSS 上的图片 URL
+              result: { url: signedUrl }, // 保存带签名的临时访问 URL
             },
           });
 
