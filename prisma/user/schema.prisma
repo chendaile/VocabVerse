@@ -7,7 +7,80 @@ datasource db {
   provider = "postgresql"
 }
 
-model user{
-        id      String @id @default(cuid())
-        
+enum PlanTag {
+  cet4
+  cet6
+  gre
+  ielts
+  toefl
+  ky
+}
+
+enum ReviewStatus {
+  NEW
+  LEARNING
+  REVIEW
+  MASTERED
+}
+
+enum ReviewGrade {
+  GOOD
+  HARD
+  FAIL
+}
+
+model User {
+  id        String     @id @default(cuid())
+  externalId String?   @unique
+  createdAt DateTime   @default(now())
+  plans     UserPlan[]
+  words     UserWord[]
+  logs      UserWordLog[]
+}
+
+model UserPlan {
+  id               String   @id @default(cuid())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+  tag              PlanTag
+  dailyNewTarget   Int
+  dailyReviewTarget Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  words            UserWord[]
+  logs             UserWordLog[]
+}
+
+model UserWord {
+  id            String        @id @default(cuid())
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  plan          UserPlan?     @relation(fields: [planId], references: [id], onDelete: SetNull)
+  planId        String?
+  wordId        Int
+  status        ReviewStatus  @default(NEW)
+  lastResult    ReviewGrade?
+  nextReviewAt  DateTime?
+  reviewedTimes Int            @default(0)
+  correct       Int            @default(0)
+  wrong         Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  logs          UserWordLog[]
+
+  @@unique([userId, wordId])
+}
+
+model UserWordLog {
+  id         String       @id @default(cuid())
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  plan       UserPlan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
+  planId     String?
+  userWord   UserWord?    @relation(fields: [userWordId], references: [id], onDelete: Cascade)
+  userWordId String?
+  wordId     Int
+  result     ReviewGrade
+  durationMs Int?
+  createdAt  DateTime     @default(now())
 }
