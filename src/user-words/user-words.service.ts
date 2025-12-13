@@ -39,48 +39,97 @@ export class UserWordsService {
         dto: EnqueueNewDto,
     ) {
         const plan = await this.getPlan(userId, planId);
-        const count = dto.count ?? plan.dailyNewTarget;
-        if (!count || count <= 0) {
+        const requested = dto.count ?? plan.dailyNewTarget;
+        if (!requested || requested <= 0) {
             throw new BadRequestException('Invalid count');
         }
 
+        const now = new Date();
+        const startOfDay = new Date(
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+        );
+        const todayNewCount = await this.userPrisma.userWord.count({
+            where: {
+                userId,
+                planId,
+                status: ReviewStatus.NEW,
+                createdAt: {
+                    gte: startOfDay,
+                },
+            },
+        });
+        const quota = Math.max(plan.dailyNewTarget - todayNewCount, 0);
+        if (quota <= 0) {
+            return { added: 0, wordIds: [], quota: 0, remaining: 0 };
+        }
+        const count = Math.min(requested, quota);
+        const remainingAfterRequest = Math.max(quota - count, 0);
+
+        // 先查出未学过的 wordId 集合，避免样本不足
         const existing = await this.userPrisma.userWord.findMany({
             where: { userId },
             select: { wordId: true },
         });
         const owned = new Set(existing.map((e) => e.wordId));
 
-        const candidates = await this.wordPrisma.stardict.findMany({
-            where: {
-                tag: {
-                    contains: plan.tag,
-                },
-            },
-            take: count * 5, // 加大取样，过滤掉已拥有的
-            orderBy: {
-                frq: 'desc',
-            },
-        });
+        const needed = count;
+        const picked: number[] = [];
+        let page = 0;
+        const pageSize = Math.max(needed * 5, 50); // 每页扩大样本，至少 50 个
 
-        const picked = candidates
-            .filter((c) => !owned.has(c.id))
-            .slice(0, count);
+        while (picked.length < needed) {
+            const batch = await this.wordPrisma.stardict.findMany({
+                where: {
+                    tag: {
+                        contains: plan.tag,
+                    },
+                },
+                orderBy: [{ frq: 'desc' }],
+                skip: page * pageSize,
+                take: pageSize,
+            });
+
+            if (batch.length === 0) {
+                break; // 没有更多词了
+            }
+
+            for (const w of batch) {
+                if (!owned.has(w.id)) {
+                    picked.push(w.id);
+                    if (picked.length >= needed) {
+                        break;
+                    }
+                }
+            }
+
+            page += 1;
+        }
 
         if (picked.length === 0) {
-            return { added: 0, wordIds: [] };
+            return {
+                added: 0,
+                wordIds: [],
+                quota,
+                remaining: remainingAfterRequest,
+            };
         }
 
         await this.userPrisma.userWord.createMany({
-            data: picked.map((w) => ({
+            data: picked.slice(0, needed).map((id) => ({
                 userId,
                 planId,
-                wordId: w.id,
+                wordId: id,
                 status: ReviewStatus.NEW,
             })),
             skipDuplicates: true,
         });
 
-        return { added: picked.length, wordIds: picked.map((p) => p.id) };
+        return {
+            added: Math.min(picked.length, needed),
+            wordIds: picked.slice(0, needed),
+            quota,
+            remaining: remainingAfterRequest,
+        };
     }
 
     async listNew(userId: string, planId: string) {
@@ -134,6 +183,13 @@ export class UserWordsService {
         }
 
         const now = new Date();
+        if (userWord.nextReviewAt && now < userWord.nextReviewAt) {
+            return {
+                skipped: true,
+                nextReviewAt: userWord.nextReviewAt,
+            };
+        }
+
         const schedule = this.strategy.calc(
             {
                 status: userWord.status,
@@ -168,7 +224,6 @@ export class UserWordsService {
                 userWordId: userWord.id,
                 wordId,
                 result: dto.result,
-                durationMs: dto.durationMs,
             },
         });
 

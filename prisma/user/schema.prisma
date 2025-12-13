@@ -77,7 +77,7 @@ model UserWordLog {
   userId     String
   plan       UserPlan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
   planId     String?
-  userWord   UserWord?    @relation(fields: [userWordId], references: [id], onDelete: Cascade)
+  userWord   UserWord?    @relation(fields: [userWordId], references: [id], onDelete: SetNull)
   userWordId String?
   wordId     Int
   result     ReviewGrade

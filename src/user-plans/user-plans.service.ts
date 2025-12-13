@@ -69,6 +69,10 @@ export class UserPlansService {
         if (!plan) {
             throw new NotFoundException('Plan not found');
         }
+        // 删除计划下的词汇任务，日志保留（userWordId 会被置空）
+        await this.prisma.userWord.deleteMany({
+            where: { userId, planId },
+        });
         return this.prisma.userPlan.delete({
             where: { id: planId },
         });

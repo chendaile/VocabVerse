@@ -5,6 +5,7 @@ import { WorkerModule } from './worker/worker.module';
 import { txt2picModule } from './txt2pic/txt2pic.module';
 import { ConfigModule } from '@nestjs/config';
 import { TaskPrismaModule } from './database/task-db/task-prisma.module';
+import { WordsModule } from './words/words.module';
 import { AuthModule } from './auth/auth.module';
 import { UserPlansModule } from './user-plans/user-plans.module';
 import { UserWordsModule } from './user-words/user-words.module';
@@ -18,6 +19,7 @@ import { ReviewStrategyModule } from './review-strategy/review-strategy.module';
         TaskPrismaModule,
         WorkerModule,
         txt2picModule,
+        WordsModule,
         AuthModule,
         UserPlansModule,
         UserWordsModule,

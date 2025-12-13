@@ -1,10 +1,14 @@
 import { ReviewGrade } from '@prisma/user-client';
+import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
 
-export interface EnqueueNewDto {
+export class EnqueueNewDto {
+    @IsOptional()
+    @IsInt()
+    @Min(1)
     count?: number;
 }
 
-export interface SubmitReviewDto {
-    result: ReviewGrade;
-    durationMs?: number;
+export class SubmitReviewDto {
+    @IsEnum(ReviewGrade)
+    result!: ReviewGrade;
 }

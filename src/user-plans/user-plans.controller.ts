@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { UserPlansService } from './user-plans.service';
-import type { CreatePlanDto, UpdatePlanDto } from './dto';
+import * as PlansDto from './dto';
 
 @Controller('me/plans')
 @UseGuards(AuthGuard)
@@ -19,7 +19,7 @@ export class UserPlansController {
     constructor(private readonly plans: UserPlansService) {}
 
     @Post()
-    create(@Req() req: any, @Body() body: CreatePlanDto) {
+    create(@Req() req: any, @Body() body: PlansDto.CreatePlanDto) {
         return this.plans.create(req.user.id, body);
     }
 
@@ -32,7 +32,7 @@ export class UserPlansController {
     update(
         @Req() req: any,
         @Param('planId') planId: string,
-        @Body() body: UpdatePlanDto,
+        @Body() body: PlansDto.UpdatePlanDto,
     ) {
         return this.plans.update(req.user.id, planId, body);
     }

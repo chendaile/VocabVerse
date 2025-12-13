@@ -8,31 +8,32 @@ import {
     Query,
     Req,
     UseGuards,
+    ParseIntPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { UserWordsService } from './user-words.service';
-import type { EnqueueNewDto, SubmitReviewDto } from './dto';
+import * as UserWordsDto from './dto';
 
 @Controller('me')
 @UseGuards(AuthGuard)
 export class UserWordsController {
     constructor(private readonly words: UserWordsService) {}
 
-    @Post('plans/:planId/enqueue-new')
-    enqueue(
+    @Post('plans/:planId/makewordtask')
+    makeWordTask(
         @Req() req: any,
         @Param('planId') planId: string,
-        @Body() body: EnqueueNewDto,
+        @Body() body: UserWordsDto.EnqueueNewDto,
     ) {
         return this.words.enqueueNewWords(req.user.id, planId, body);
     }
 
-    @Get('plans/:planId/new')
-    listNew(@Req() req: any, @Param('planId') planId: string) {
+    @Get('plans/:planId/tobecompleted')
+    listPending(@Req() req: any, @Param('planId') planId: string) {
         return this.words.listNew(req.user.id, planId);
     }
 
-    @Get('plans/:planId/review-due')
+    @Get('plans/:planId/reviewdue')
     reviewDue(
         @Req() req: any,
         @Param('planId') planId: string,
@@ -45,9 +46,9 @@ export class UserWordsController {
     @Patch('words/:wordId')
     submit(
         @Req() req: any,
-        @Param('wordId') wordId: string,
-        @Body() body: SubmitReviewDto,
+        @Param('wordId', ParseIntPipe) wordId: number,
+        @Body() body: UserWordsDto.SubmitReviewDto,
     ) {
-        return this.words.submitReview(req.user.id, Number(wordId), body);
+        return this.words.submitReview(req.user.id, wordId, body);
     }
 }
