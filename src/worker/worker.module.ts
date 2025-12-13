@@ -1,11 +1,10 @@
-
 import { Module } from '@nestjs/common';
 import { TaskWorkerService } from './worker.service';
-import { PrismaModule } from '../prisma/prisma.module';
+import { TaskPrismaModule } from '../database/task-db/task-prisma.module';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [PrismaModule, HttpModule],
-  providers: [TaskWorkerService],
+    imports: [TaskPrismaModule, HttpModule],
+    providers: [TaskWorkerService],
 })
 export class WorkerModule {}

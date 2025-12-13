@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/word-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model stardict {
+  id          Int     @id @default(autoincrement())
+  word        String  @unique
+  sw          String
+  phonetic    String?
+  definition  String?
+  translation String?
+  pos         String?
+  collins     Int?    @default(0)
+  oxford      Int?    @default(0)
+  tag         String?
+  bnc         Int?
+  frq         Int?
+  exchange    String?
+  detail      String?
+  audio       String?
+
+  @@index([collins], map: "stardict_collins")
+  @@index([oxford], map: "stardict_oxford")
+  @@index([sw, word], map: "stardict_sw_word")
+  @@index([tag], map: "stardict_tag")
+}

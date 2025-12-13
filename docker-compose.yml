@@ -22,7 +22,7 @@ services:
       - vocabverse-net
 
   backend:
-    image: oft-registry.cn-shanghai.cr.aliyuncs.com/vocabverse/service:0.1.2
+    image: oft-registry.cn-shanghai.cr.aliyuncs.com/vocabverse/service:latest
     container_name: vocabverse_backend
     env_file:
       - ./.env
